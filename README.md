@@ -72,28 +72,28 @@ It should say supported=1 detected=1, if the camera is connected, or else detect
 
 There are many ways to see if the camera works, such as using Libcamera-hello, rpicam-hello, raspistill -o Desktop/image.jpg, etc. You will have to figure out which one works for you, as every camera is different; the one that worked for me was raspistill.
 
-## Dataplicity
+## - Dataplicity
 
 
-## Basic Security Set Up
-
-
-
-## Work with credential files (Optional)
+## - Basic Security Set Up
 
 
 
-## Static IP (Optional)
+## - Work with credential files (Optional)
 
 
 
-
-## Getting Permissions and Folders set up
+## - Static IP (Optional)
 
 
 
 
-## Systemd Setup
+## - Getting Permissions and Folders set up
+
+
+
+
+## - Systemd Setup
 
 Step 1: Setting up the script to run at boot/
 
@@ -135,7 +135,7 @@ Step 1: Setting up the script to run at boot/
 Note: I created the folder python_scripts, so do not add /python_scripts/ if you do not plan on putting your python scripts in a specific folder. The above is simply the path to my file, everyone has a different path to their files.
 
 
-## Some Errors You May Run Into
+## - Some Errors You May Run Into
 There is a chance you will have permission errors or USB issues. The USB issue I am referring to typically occurs when the system is shut down unsafely, the USB is not unmounted properly, or when the system crashes. This doesn't occur every time these happen, however, that does not mean it is not going to happen.
 
 The system usually creates and removes folders automatically if you plug in an external device. For example, Ubuntu crashed, therefor, the system can't remove the folder, and the next created folder becomes a suffix, the number 1.
@@ -149,7 +149,7 @@ Unmount your external flash drive and check the folder in /media/your-user again
 
 sudo rmdir /media/your-user/your-usb
 
-## Creating a Cron Job
+## - Creating a Cron Job
 
 Step 1: Open the Crontab (make sure to do 'cd/home/your_username) first
 - sudo crontab -e
@@ -224,7 +224,7 @@ Step 11: Ensure files have privileges
 - sudo chown your_user:your_user /home/your_username/update_message.txt
 
 
-# Log Rotation
+# - Log Rotation
 This is a must-have when creating new files or processes like systemd and cron jobs. The below were my preferences, so if you wish to do something else, you can still follow this section, but change it in your system as needed.
 
 Step 1: Modify logrotate.conf
@@ -386,5 +386,11 @@ That is everything you should need to get this working! Make sure to save and ex
 
 
 
-## Resources
-## Final Thoughts
+## - Resources
+
+
+
+## -  Final Thoughts
+I think this was a very fun project, as difficult as it was getting into it at first, it ended up not being so bad. At least that is now that I know how to do it. For anybody looking for a similar project that is cost-effective (free), this is definitely the project for you.
+
+I also wanted to give a special thanks to my mentor, Joseph Rinehart. Without the resources and support from him and the USDA, I would not have been able to complete this project. 
