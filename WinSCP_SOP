@@ -1,0 +1,43 @@
+Using WinSCP with the Raspberry Pi!
+
+Step 1: Download WinSCP
+-	https://winscp.net/eng/download.php
+
+Step 2: Open WinSCP
+ 
+Above is an example of what you will get when opening WinSCP.
+Note: Your Laptop and Raspberry Pi need to be connected to the same WIFI for this to work, PuTTy is the same way as are most ssh terminals. 
+-	It’s just like using PuTTy, you want to type in your Raspberry Pi’s IP address in Host name, then you want to type in your Username on the Pi.
+-	Don’t worry about typing in the password on the password line, it will have you type it in again anyway. 
+-	Then use ‘SFTP’ under ‘File Protocol’, and make sure the port number is ‘22’, after this just hit Login.
+ 
+-	After you log in you will see the below
+ 
+
+Also, the great thing about WinSCP is that it remembers where you left off, so if you close out of it while inside of a specific folder, it will open inside of that folder you were in. 
+For example, I was in the folder ‘python_scripts’ after I exited out of the app, then once I logged in again, I was back inside that folder right where I left off!
+
+Step 3: Give yourself ‘Read and Write’ privileges on the Raspberry Pi
+-	sudo chmod 777 /target/directory
+o	Please use the 777-permission code with caution as this gives everyone on the Raspberry Pi read/write/execute, privileges, we use it because as an outside user we need to be able to send files over to the Raspberry Pi.
+
+Step 4: Begin transferring files from your Laptop/Desktop to the Raspberry Pi
+-	This is very simple just hover over the file you want hold down on the left keypad button and drag it over to where you want on the Raspberry Pi.
+Note Important: If you are unable to move a file over to a folder on the Raspberry Pi, this means you need ‘write’ privileges. So, it is important to know which command is what.
+
+Number Symbolic Meaning: r = read, w = write, x = execute
+Number	Symbolic	Meaning
+777	rwxrwxrwx	Everyone: read/write/execute
+755	rwxr-xr-x	Owner: all, Group & Others: read/execute
+700	rwx------	Owner: all, Group/Others: none
+644	rw-r—r--	Owner: read/write, Groups/Others: read
+600	rw-------	Owner: read/write only
+
+Quick Reference:
+Code	Owner	Group	Others	Typical User
+777	rwx	rwx	rwx	Open access (not secure)
+755	rwx	r-x	r-x	Programs/scripts
+700	rwx	---	---	Private scripts/data
+644	rw-	r--	r--	Regular files (docs, config)
+600	rw-	---	---	Private files
+
