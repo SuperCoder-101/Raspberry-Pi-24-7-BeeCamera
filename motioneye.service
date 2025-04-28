@@ -3,11 +3,15 @@ Description=motionEye Server
 After=network.target local-fs.target remote-fs.target
 
 [Service]
-User=motion
+
+# You shouldn't use root unless you make sure your system is protected, otherwise, I did use it here because of some permissions errors, and this helped bypass some of that.
+User=root
 RuntimeDirectory=motioneye
 LogsDirectory=motioneye
 StateDirectory=motioneye
 ExecStart=/usr/local/bin/meyectl startserver -c /etc/motioneye/motioneye.conf
+
+# Restart Section
 Restart=always
 RestartSec=3
 
