@@ -4,16 +4,12 @@ Step 1: Download WinSCP
 -	https://winscp.net/eng/download.php
 
 Step 2: Open WinSCP
- 
-Above is an example of what you will get when opening WinSCP.
+
 Note: Your Laptop and Raspberry Pi need to be connected to the same WIFI for this to work, PuTTy is the same way as are most ssh terminals. 
 -	It’s just like using PuTTy, you want to type in your Raspberry Pi’s IP address in Host name, then you want to type in your Username on the Pi.
 -	Don’t worry about typing in the password on the password line, it will have you type it in again anyway. 
 -	Then use ‘SFTP’ under ‘File Protocol’, and make sure the port number is ‘22’, after this just hit Login.
  
--	After you log in you will see the below
- 
-
 Also, the great thing about WinSCP is that it remembers where you left off, so if you close out of it while inside of a specific folder, it will open inside of that folder you were in. 
 For example, I was in the folder ‘python_scripts’ after I exited out of the app, then once I logged in again, I was back inside that folder right where I left off!
 
