@@ -12,9 +12,9 @@ My goal is to make this project as replicable as possible, especially after havi
 All you really need here is a basic understanding of Raspberry Pi boards.
 
 ## - Hardware
-- A Raspberry Pi 4, 3 B+
+- A Raspberry Pi 4 (or 3 B+)
 - OV5647 ArduCam with Built-in Motorized IR-CUT Filter & Two Infrared LEDs for Raspberry Pi https://www.arducam.com/product/arducam-for-raspberry-pi-noir-5mp-ov5647-camera-module-motorized-ir-cut-filter-for-daylight-and-night-vision-support-pi-4-zero-pi-3/
-- A 500 GB micro SD card (Obviously not necessary depending on what you do with this project)
+- A 500 GB micro SD card (Optional Size)
 - Mouse, Keyboard, and Monitor
 
 ## - Software
@@ -30,8 +30,8 @@ All you really need here is a basic understanding of Raspberry Pi boards.
 ## - Flashing
 Once you have your OS image downloaded, you can go ahead and flash it onto the SD card. You should have a good-quality SD card with at least 64 GB for this project. You can do this with the Raspberry Pi Imager https://www.raspberrypi.com/software/
 
-## - Your first boot
-You want to insert your new microSD into the slot on your Raspberry Pi and power it. Then connect it to Wi-Fi once it has finished booting, then open up the console/terminal and type the commands below.
+## - Your First Boot
+You want to insert your new microSD into the slot on your Raspberry Pi and power it. Then connect it to Wi-Fi once it has finished booting, and then open up the console/terminal and type the commands below.
 
 ```python
 sudo apt-get update
@@ -43,55 +43,286 @@ Next, if you haven't already, I suggest running the command below so you can set
 sudo raspi-config
 ```
 ## - Camera
-
-Next, I set up my camera for this project. When accessing the configuration settings, like I mentioned before, you want to go down to the 'Interface Options' and then enable Legacy Camera. 
-
-Note: The Bullseye OS uses Legacy Camera Support, and the Bookworm OS no longer has Legacy Camera Support.
-
-Please look into your camera versions and make sure they work with your OS.
-
-- I have found that any camera that is Version 3 only works with libcamera libraries, so you should use Bookworm.
-- https://www.waveshare.com/wiki/RPi_NoIR_Camera_V2
-  
-This website has a good list of cameras and what their supported driver type is.
-
-Some other websites for camera documentation.
-- https://www.raspberrypi.com/documentation/accessories/camera.html#:~:text=The%20original%205%2Dmegapixel%20model,which%20was%20released%20in%202023.
-- https://www.raspberrypi.com/documentation/computers/camera_software.html
-
-Once your camera is set up, you should restart your system. This can simply be done by using the command below.
-Sudo reboot or Sudo Shutdown -r now, this is only if your system doesn't prompt you to restart after making the change.
-
-Next, you can test out your camera on your console to see if it works. I am using a terminal emulator via SSH, so this does not work unless I am connected directly to a desktop such as a Raspberry Pi 7" Touchscreen, which is what I am using to see if the camera works.
-
-To ensure your camera is connected and active, use the command
-
+- Enable Legacy Camera Support (only needed for older cameras like OV5647)
+- Check Raspberry Pi Camera Documentation
+- Verify Connection:
+```python
 vcgencmd get_camera
-
-It should say supported=1 detected=1, if the camera is connected, or else detected = 0. Make sure the ribbon cable is attached properly and that it is connected to the Camera Serial Interface(CSI), not the Display Serial Interface(DSI). The ribbon connector will fit into either port. The camera port is located near the HDMI connector.
-
-There are many ways to see if the camera works, such as using Libcamera-hello, rpicam-hello, raspistill -o Desktop/image.jpg, etc. You will have to figure out which one works for you, as every camera is different; the one that worked for me was raspistill.
+```
+- Test camera capture:
+```python
+raspistill -o Desktop/image.jpg
+```
+- Note: The command above may not work; there are many commands online that you can find to test your camera.
+- Important: Bookworm OS uses libcamera; Bullseye supports legacy Camera.
 
 ## - Dataplicity
+To set up Dataplicity on the Raspberry Pi, you will need to enter your email on the website first, then a download link will appear for the Pi.
+- Click on this link to get to the website
+  - https://www.dataplicity.com/
+- Then simply log in and follow the steps to get your Raspberry Pi set up with Dataplicity
+  
+Note: Using Dataplicity is not very difficult; there are plenty of documents and articles on the website that you can use to help you get moving.
+
+## - MotionEye.eo
+
+
+
 
 
 ## - Basic Security Set Up
 
+This is for changing the default user 
 
+Change default username : 
+
+sudo useradd –m JUSTME –G sudo 
+
+JUSTME being the user name, you can pick whatever you want. 
+
+Next, enter: 
+
+sudo passwd JUSTME 
+
+This will allow you to set a password for the new user. Your new account should now have the same permissions as pi, as both are in the sudo usergroup. 
+
+Before deleting the user pi, logout and then log in again using your new account, and attempt to run: 
+
+sudo visudo 
+
+If successful, you can delete the default pi user. In the terminal, enter 
+
+sudo deluser pi 
+
+If you want, you can also simultaneously remove the /home/pi directory 
+
+sudo deluser –remove-home pi 
+
+
+## - Install a firewall 
+
+There are a number of ways to add a firewall to your Raspberry Pi, including the iptables that comes with Raspberry Pi OS. I would recommend to use the UFW ('uncomplicated firewall') interface. 
+
+To install the UFW software, open a terminal window and enter: 
+
+sudo apt install ufw 
+
+UFW will be installed but not active yet. Also by default it will block all incoming traffic and allow all outgoing traffic, this includes any SSH connections. 
+
+To open a port whil using UFW, such as port 22, the default used for SSH, type in: 
+
+sudo ufw allow 22 
+
+You can also make it more specific to only allow specific IP-addresses: 
+
+sudo ufw allow from 192.168.1.100 port 22  
+
+Please keep in mind that this is just a made up port number please only do this for your IP-address specifically if you plan to create a STATIC IP address.  
+
+Don't forget to replace values with your own settings. On a local network you can get your ip address with the command ipconfig (Windows) or ifconfig(Linux/Mac). 
+
+To list the enabled firewall rules: 
+
+Sudo ufw show added 
+
+Now to enable the firewall: 
+
+Sudo ufw enable 
+
+Be careful as this will enable the firewall now, and you will get the message Firewall is active and enabled on system startup. 
+
+To display your current rules once ufw enabled, use this command: 
+
+sudo ufw status verbose 
+
+Quite complicated rules can be provided, such as to allow specific IP addresses to be blocked, specifying in which direction traffic is allowed, or limiting the number of attempts to connect. For more complex configurations, I suggest to check the manual, just type: 
+
+man ufw 
 
 ## - Work with credential files (Optional)
 
+The final security recommendation (for now) is to make use of environmental variables to store credentials, such as email logins, that may be needed in user scripts. Environment variables are operating system level variables whose value can be used by software programs. As the values remain the system, not in the script, there is less risk of exposing credentials. 
+
+ 
+Let’s create a simple file called mycredentials: 
+
+nano ~/.mycredentials.env 
+
+
+Now enter any information you may want and use a variable name you can call upon in your scripts prepended with an export command. For example: 
+
+export GMAIL_USERNAME='XXXXXXXX' 
+
+export GMAIL_PASSWORD='XXXXXXXX' 
+
+
+Now save the file and change its permissions so it is not readable by others: 
+
+chmod 600 ~/.mycredentials.env 
+ 
+
+Make sure the variables are loaded: 
+
+source ~/.mycredentials.env 
+ 
+
+And finally, adapt your script to use the stored variables. For example, in Python: 
+
+Import os 
+
+GMAIL_USERNAME = os.environ['GMAIL_USERNAME'] 
+
+GMAIL_PASSWORD =  os.environ['GMAIL_PASSWORD'] 
+ 
+
+That is all for this section. 
 
 
 ## - Static IP (Optional)
 
+!IMPORTANT! 
 
+IF YOU SET UP A STATIC IP ADDRESS WITH A SPECIFIC WIFI NETWORK THAT STATIC IP ADDRESS CAN ONLY WORK ON THAT WIFI NETWORK. MEANING YOUR DEVICE WILL RUN INTO LOGIN ISSUES VIA SSH IF YOU TRY TO USE IT WITH A DIFFERENT WIFI NETWORK, THIS IS BECAUSE THE STATIC IP ADDRESS WAS NOT SET UP ON THAT SPECIFIC NETWORK. 
+
+ PLEASE ONLY DO THIS IF YOU WANT TO, DO NOT DO THIS UNLESS YOU FEEL IT IS NECESSARY. 
+
+
+Setting up a static IP address 
+
+https://phoenixnap.com/kb/raspberry-pi-static-ip 
+
+
+I will also just write down what I take from this guide.
+ 
+
+Obtain Current IP Address 
+
+Hostname –I 
+
+
+OR 
+
+On your mobile hotspot or Raspberry Pi display you can find the IP address easily. 
+
+The Raspberry Pi display if you enable RealVNC Server the IP address of your Raspberry Pi will show up there. 
+
+
+Next you want to identify the default network interface 
+
+ip r | grep default 
+
+
+The output will display the router's address. To obtain the name of your network interface, use the following command below: 
+
+route | grep '^default' | grep –o '[^]*$' 
+
+
+This command uses grep regex to extract the interface name from the larger output. 
+
+
+Next you want to obtain the DNS Address, you can find it in the resolv.conf file located in the /etc directory. 
+
+sudo nano /etc/resolv.conf 
+
+
+Look for the line that starts with the word nameserver and write down the DNS IP address. 
+
+Also the nameserver in this case is literally the same as the IP address. 
+
+
+Next you want to edit the network settings 
+
+Once you have all this information, set up a static private IP address on your Raspberry Pi employing one of the two methods described below. 
+
+
+Open the dhcpcd.conf file in a text editor. 
+
+Sudo nano /etc/dhcpcd.conf 
+
+
+Scroll to the bottom of the file and find the lines below.  
+
+
+Here you will want to uncomment the lines you plan on using and make sure to add your ip addresses and other configurations as needed. 
+
+ So it will kinda look like the picture below. 
+
+
+After this has been done you will save and exit.  
+
+
+HOWEVER DO NOT SHUTDOWN OR REBOOT THE SYSTEM YET. 
+
+
+Remember when we made that firewall? Yea you need to add your new static ip address to that or you will be locked out of your device via ssh. 
+
+
+Simply go back to the firewall tutorial to the left and add your new IP address following the steps listed. 
+
+
+Afterwards you will  reboot the Raspberry Pi 
+
+sudo reboot 
+
+
+Then you can just test your Raspberry Pi like so 
+
+
+hostname -I 
+
+
+Then everything should be ready to go with your static IP address. I also wouldn't follow the last bit of the tutorial from the link I sent where it says to set up the static IP address via GUI. The Raspberry Pi has had quite a few updates to their GUI since this tutorial came out and they do not have their settings set up like that anymore on the display.  
+
+
+Otherwise you're done here. 
 
 
 ## - Getting Permissions and Folders set up
 
+Getting permissions and folders set up 
 
 
+The WinSCP SOP explains the permission commands in case you want to change the numbers from 777 to 755 for example.   
+
+Step 1: Create a new folder under your user (Cat) or (Your User Name) 
+
+sudo mkdir python_scripts 
+
+Ex: python_scripts (always use _ when creating files, it is easier than dealing with issues related to files with spaces in them). 
+
+Make sure to give permission here as well. 
+
+sudo chown -R Cat:Cat /home/Cat/python_scripts 
+
+
+Step 2: Open the ‘Applications menu’, hover over ‘Programming’, and click ‘Thonny’. 
+
+This is where you are going to open the Python script.  
+
+Click on Load then go to the flash drive you connect to your Raspberry Pi and select your_file.py. 
+
+Here you can start modifying your script and even run it through Thonny. 
+
+Step 3: Access your terminal/console. 
+
+Now there are a few things we will need to do. 
+
+First type sudo chmod 777 /home/Cat (chmod 777 gives you modify, execute, and write permissions, normally don’t do this however, you will need these permissions to manage and execute this file in the future). 
+
+Next, type cd your_folder, and type sudo chmod 777 your_file.py. This will give that file the permissions it needs to run on your system. 
+
+Now type cd so that you will end up back into the Orchid user directory. 
+
+Note: The python file could be any name, just select the one you plan on using, I am currently using yolo_captureV3.py. 
+
+
+Step 4: Other file permissions that you might need to add if the camera isn’t working or is being accessed as it should be. 
+
+Type sudo chmod 666 /dev/video0, sometimes this helps with giving the proper permissions to the camera so it can execute. Chmod 666 gives all users, files, etc., read and write permissions. This only gives those permissions to what you write the permissions for so the /dev/video0 directory. 
+
+ Another directory that needs permission is /media/Cat/flash_drive, so type sudo chmod 777 /media/Robo/. 
+
+This allows Raspberry Pi permission to send the video to your flash drive.  
 
 ## - Systemd Setup
 
@@ -148,6 +379,7 @@ This took me some time to figure out, but after seeing the obvious problem I was
 Unmount your external flash drive and check the folder in /media/your-user again. Now, there should only be one (empty) folder. Remove the folder with sudo rights:
 
 sudo rmdir /media/your-user/your-usb
+
 
 ## - Creating a Cron Job
 
@@ -370,25 +602,21 @@ What it does: After rotating logs, it forcefully deletes all logs matching those
 Why: 
 Seems redundant (since logrotate already handles deletion), but maybe intended to clear out stray or orphaned logs that didn’t get cleaned properly. 
 
-
-Summary: 
-
-This config: 
-
-- Rotates logs every hour. 
-- Keeps 2 old logs. 
-- Deletes logs older than 48 hours. 
-- Skips missing or empty logs. 
-- Doesn’t compress logs. 
-- Cleans up all related logs after rotation. 
-
-That is everything you should need to get this working! Make sure to save and exit! 
-
-
-
 ## - Resources
 
-
+- https://jmichault.github.io/motioneye.eo-dok/en/
+- https://www.youtube.com/watch?v=-hZ5dwDBMag
+- https://raspberrypi.stackexchange.com/questions/109712/how-do-you-change-the-ssh-port-number
+- https://www.thedigitalpictureframe.com/ultimate-guide-systemd-autostart-scripts-raspberry-pi/
+- https://phoenixnap.com/kb/raspberry-pi-static-ip
+- https://medium.com/swlh/setting-up-ssh-and-2fa-on-a-raspberry-pi-4cd7b2f6f4ef
+- https://www.dataplicity.com/
+- https://www.raspberrypi.com/documentation/computers/camera_software.html#building-rpicam-apps
+- https://objsal.medium.com/install-uncomplicated-firewall-to-a-raspberry-pi-76f5c4591651
+- https://www.techcoil.com/blog/how-i-built-my-home-raspberry-pi-3-cctv-using-a-motion-eye-os-image-from-home-surveillance/
+- https://www.youtube.com/watch?v=l2J8Gfq0tqk
+- https://www.reddit.com/r/RASPBERRY_PI_PROJECTS/comments/tq22wg/comment/i2inmzh/
+- https://github.com/motioneye-project/motioneye/tree/dev?tab=readme-ov-file#installation
 
 ## -  Final Thoughts
 I think this was a very fun project, as difficult as it was getting into it at first, it ended up not being so bad. At least that is now that I know how to do it. For anybody looking for a similar project that is cost-effective (free), this is definitely the project for you.
