@@ -66,9 +66,95 @@ Note: Using Dataplicity is not very difficult; there are plenty of documents and
 
 ## - MotionEye.eo
 
+Set up MotionEye.eo
+Source: https://jmichault.github.io/motioneye.eo-dok/en/instalado_en_debian/
+We need to modify some things here for MotionEye.
+1.	Make sure you have motion eye installed
+a.	sudo nano /etc/motioneye/motioneye.conf
+i.	Then go to the #TCP port to listen on ‘port 8765’ change to port 80.
+2.	Do a sudo reboot
+3.	Then go to the dataplicity website and turn on the wormhole
+4.	Now we need to modify the systemd file for MotionEye
+a.	sudo nano /etc/system/systemd/motioneye.service
+i.	The file should look like the below
+[Unit]
+Description=motionEye Server
+After=network.target local-fs.target remote-fs.target
+
+[Service]
+User=root
+RuntimeDirectory=motioneye
+LogsDirectory=motioneye
+StateDirectory=motioneye
+ExecStart=/usr/local/bin/meyectl startserver -c /etc/motioneye/motioneye.co>
+Restart=on-abort
 
 
+# Restart Script
+Restart=Always
+RestartSec=3
 
+[Install]
+WantedBy=multi-user.target
+
+5.	Save and Exit
+6.	Now just quickly reload and restart the systemd service
+a.	sudo systemctl daemon-reload
+b.	sudo systemctl restart motioneye
+i.	Now if you want to view the status of the system
+c.	sudo systemctl status motioneye
+7.	Click the link that the wormhole created
+a.	Now you’re at the website, you should see the login page.
+Step 11: How to Set Up a MotionEye Log File (Raspberry Pi Style)
+
+1. Create a proper log folder
+Let’s make sure /var/log/motioneye/ exists:
+
+sudo mkdir -p /var/log/motioneye
+sudo chown root:root /var/log/motioneye
+sudo chmod 755 /var/log/motioneye
+
+Folder is there, owned by root, readable by the service.
+2. Update motioneye.conf to log to a file
+Now edit the main MotionEye config file:
+sudo nano /etc/motioneye/motioneye.conf
+
+Add (or edit) these lines:
+
+log_level info
+log_file /var/log/motioneye/motioneye.log
+Details:
+-	log_level can be info, warn, or debug depending on how much you want.
+-	log_file points directly to where you want the logs to go.
+Now MotionEye will actively write logs instead of dumping everything to console only.
+
+3. Make sure the log file itself exists
+Even though MotionEye should create it automatically, we’ll be proactive:
+sudo touch /var/log/motioneye/motioneye.log
+sudo chown root:root /var/log/motioneye/motioneye.log
+sudo chmod 644 /var/log/motioneye/motioneye.log
+Now MotionEye can open and write into the file cleanly without error.
+
+4. Reload and Restart MotionEye
+sudo systemctl daemon-reload
+sudo systemctl restart motioneye
+Fresh config, fresh logging, service starts without explosions.
+
+5. Check the logs working
+After a few seconds/minutes, you can check that MotionEye is logging stuff like:
+cat /var/log/motioneye/motioneye.log
+or
+tail -f /var/log/motioneye/motioneye.log
+(for live scrolling view).
+ You should see service startup info, camera statuses, errors, etc.
+Full Summary:
+Step	Command
+Create log folder	sudo mkdir -p /var/log/motioneye
+Set ownership	sudo chown root:root /var/log/motioneye
+Set permissions	sudo chmod 755 /var/log/motioneye
+Set up config logging	log_level info + log_file /var/log/motioneye/motioneye.log
+Create blank log file	sudo touch /var/log/motioneye/motioneye.log
+Restart service	sudo systemctl restart motioneye
 
 ## - Basic Security Set Up
 
@@ -138,6 +224,11 @@ sudo ufw status verbose
 Quite complicated rules can be provided, such as to allow specific IP addresses to be blocked, specifying in which direction traffic is allowed, or limiting the number of attempts to connect. For more complex configurations, I suggest to check the manual, just type: 
 
 man ufw 
+
+## Set up Fail2Ban
+
+
+
 
 ## - Work with credential files (Optional)
 
@@ -548,7 +639,7 @@ What it does:
 Keeps 2 archived log files before deleting old ones.
 
 Example:
-If today's logrotates, yesterday's and the day before yesterday's logs will be kept, then the oldest will be deleted
+If today's log rotates, yesterday's and the day before yesterday's logs will be kept, then the oldest will be deleted
 
 hourly
 
