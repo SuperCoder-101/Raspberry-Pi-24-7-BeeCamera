@@ -77,6 +77,7 @@ i.	Then go to the #TCP port to listen on ‘port 8765’ change to port 80.
 4.	Now we need to modify the systemd file for MotionEye
 a.	sudo nano /etc/system/systemd/motioneye.service
 i.	The file should look like the below
+```python
 [Unit]
 Description=motionEye Server
 After=network.target local-fs.target remote-fs.target
@@ -96,6 +97,7 @@ RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
+```
 
 5.	Save and Exit
 6.	Now just quickly reload and restart the systemd service
@@ -110,9 +112,11 @@ Step 11: How to Set Up a MotionEye Log File (Raspberry Pi Style)
 1. Create a proper log folder
 Let’s make sure /var/log/motioneye/ exists:
 
+```python
 sudo mkdir -p /var/log/motioneye
 sudo chown root:root /var/log/motioneye
 sudo chmod 755 /var/log/motioneye
+```
 
 Folder is there, owned by root, readable by the service.
 2. Update motioneye.conf to log to a file
@@ -156,52 +160,23 @@ Set up config logging	log_level info + log_file /var/log/motioneye/motioneye.log
 Create blank log file	sudo touch /var/log/motioneye/motioneye.log
 Restart service	sudo systemctl restart motioneye
 
-## - Basic Security Set Up
-
-This is for changing the default user 
-
-Change default username : 
-
-sudo useradd –m JUSTME –G sudo 
-
-JUSTME being the user name, you can pick whatever you want. 
-
-Next, enter: 
-
-sudo passwd JUSTME 
-
-This will allow you to set a password for the new user. Your new account should now have the same permissions as pi, as both are in the sudo usergroup. 
-
-Before deleting the user pi, logout and then log in again using your new account, and attempt to run: 
-
-sudo visudo 
-
-If successful, you can delete the default pi user. In the terminal, enter 
-
-sudo deluser pi 
-
-If you want, you can also simultaneously remove the /home/pi directory 
-
-sudo deluser –remove-home pi 
-
-
 ## - Install a firewall 
 
 There are a number of ways to add a firewall to your Raspberry Pi, including the iptables that comes with Raspberry Pi OS. I would recommend to use the UFW ('uncomplicated firewall') interface. 
 
 To install the UFW software, open a terminal window and enter: 
 
-sudo apt install ufw 
+`sudo apt install ufw` 
 
 UFW will be installed but not active yet. Also by default it will block all incoming traffic and allow all outgoing traffic, this includes any SSH connections. 
 
 To open a port whil using UFW, such as port 22, the default used for SSH, type in: 
 
-sudo ufw allow 22 
+`sudo ufw allow 22` 
 
 You can also make it more specific to only allow specific IP-addresses: 
 
-sudo ufw allow from 192.168.1.100 port 22  
+`sudo ufw allow from 192.168.1.100 port 22`  
 
 Please keep in mind that this is just a made up port number please only do this for your IP-address specifically if you plan to create a STATIC IP address.  
 
@@ -213,22 +188,70 @@ Sudo ufw show added
 
 Now to enable the firewall: 
 
-Sudo ufw enable 
+`sudo ufw enable` 
 
 Be careful as this will enable the firewall now, and you will get the message Firewall is active and enabled on system startup. 
 
 To display your current rules once ufw enabled, use this command: 
 
-sudo ufw status verbose 
+`sudo ufw status verbose` 
 
 Quite complicated rules can be provided, such as to allow specific IP addresses to be blocked, specifying in which direction traffic is allowed, or limiting the number of attempts to connect. For more complex configurations, I suggest to check the manual, just type: 
 
 man ufw 
 
-## Set up Fail2Ban
+## Set up Google Authenticator
 
+First you want to use the command
 
+`sudo apt install libpam_google_authenticator`
 
+Set up google authenticator for your account
+
+`sudo google-authenticator`
+
+Then you will need to scan the QR code that pops up with your authenticator app/camera
+
+Finish up with Google Authenticator on the Pi
+
+answer `y` to update the .google_authenticator file
+
+Next you will be asked some questions about "time skew"
+
+Update PAM
+
+```python
+sudo cp /etc/pam.d/sshd !#$.dist`
+sudo nano /etc/pam.d/sshd
+```
+
+Add the following line at the top
+
+Save & Exit w/ ctrl+x, y, and enter
+
+Tesh SSH
+
+Now try to log in to your Raspberry Pi form another computer. You will still need to specify your username and the port number you choose.
+
+However, at this point everything should work as needed
+
+## Change Port Number (Optional)
+
+Simply start by typing the command
+
+`sudo nano /etc/ssh/sshd_config`
+
+add the line port #### (whatever number you choose)
+
+So if you see `port 22` change it otherwise add the line port your-num
+
+Then restart the ssh service
+
+`sudo service ssh restart`
+
+Now your new port number should work.
+
+Common mistakes: Don't use ssh_config this will not work, always use sshd_config if you need to configure ssh.
 
 ## - Work with credential files (Optional)
 
@@ -237,7 +260,7 @@ The final security recommendation (for now) is to make use of environmental vari
  
 Let’s create a simple file called mycredentials: 
 
-nano ~/.mycredentials.env 
+`sudo nano ~/.mycredentials.env`
 
 
 Now enter any information you may want and use a variable name you can call upon in your scripts prepended with an export command. For example: 
@@ -280,7 +303,7 @@ IF YOU SET UP A STATIC IP ADDRESS WITH A SPECIFIC WIFI NETWORK THAT STATIC IP AD
 
 Setting up a static IP address 
 
-https://phoenixnap.com/kb/raspberry-pi-static-ip 
+- https://phoenixnap.com/kb/raspberry-pi-static-ip 
 
 
 I will also just write down what I take from this guide.
@@ -288,7 +311,7 @@ I will also just write down what I take from this guide.
 
 Obtain Current IP Address 
 
-Hostname –I 
+`Hostname –I` 
 
 
 OR 
@@ -300,12 +323,12 @@ The Raspberry Pi display if you enable RealVNC Server the IP address of your Ras
 
 Next you want to identify the default network interface 
 
-ip r | grep default 
+`ip r | grep default` 
 
 
 The output will display the router's address. To obtain the name of your network interface, use the following command below: 
 
-route | grep '^default' | grep –o '[^]*$' 
+`route | grep '^default' | grep –o '[^]*$'` 
 
 
 This command uses grep regex to extract the interface name from the larger output. 
@@ -313,7 +336,7 @@ This command uses grep regex to extract the interface name from the larger outpu
 
 Next you want to obtain the DNS Address, you can find it in the resolv.conf file located in the /etc directory. 
 
-sudo nano /etc/resolv.conf 
+`sudo nano /etc/resolv.conf` 
 
 
 Look for the line that starts with the word nameserver and write down the DNS IP address. 
@@ -328,7 +351,7 @@ Once you have all this information, set up a static private IP address on your R
 
 Open the dhcpcd.conf file in a text editor. 
 
-Sudo nano /etc/dhcpcd.conf 
+`sudo nano /etc/dhcpcd.conf` 
 
 
 Scroll to the bottom of the file and find the lines below.  
@@ -353,13 +376,13 @@ Simply go back to the firewall tutorial to the left and add your new IP address 
 
 Afterwards you will  reboot the Raspberry Pi 
 
-sudo reboot 
+`sudo reboot` 
 
 
 Then you can just test your Raspberry Pi like so 
 
 
-hostname -I 
+`hostname -I` 
 
 
 Then everything should be ready to go with your static IP address. I also wouldn't follow the last bit of the tutorial from the link I sent where it says to set up the static IP address via GUI. The Raspberry Pi has had quite a few updates to their GUI since this tutorial came out and they do not have their settings set up like that anymore on the display.  
@@ -377,16 +400,16 @@ The WinSCP SOP explains the permission commands in case you want to change the n
 
 Step 1: Create a new folder under your user (Cat) or (Your User Name) 
 
-sudo mkdir python_scripts 
+`sudo mkdir python_scripts` 
 
 Ex: python_scripts (always use _ when creating files, it is easier than dealing with issues related to files with spaces in them). 
 
 Make sure to give permission here as well. 
 
-sudo chown -R Cat:Cat /home/Cat/python_scripts 
+`sudo chown -R Cat:Cat /home/Cat/python_scripts`
 
 
-Step 2: Open the ‘Applications menu’, hover over ‘Programming’, and click ‘Thonny’. 
+**Step 2:** Open the ‘Applications menu’, hover over ‘Programming’, and click ‘Thonny’. 
 
 This is where you are going to open the Python script.  
 
@@ -398,7 +421,7 @@ Step 3: Access your terminal/console.
 
 Now there are a few things we will need to do. 
 
-First type sudo chmod 777 /home/Cat (chmod 777 gives you modify, execute, and write permissions, normally don’t do this however, you will need these permissions to manage and execute this file in the future). 
+First type `sudo chmod 777 /home/Cat` (chmod 777 gives you modify, execute, and write permissions, normally don’t do this however, you will need these permissions to manage and execute this file in the future). 
 
 Next, type cd your_folder, and type sudo chmod 777 your_file.py. This will give that file the permissions it needs to run on your system. 
 
@@ -423,10 +446,10 @@ Step 1: Setting up the script to run at boot/
 - https://www.thedigitalpictureframe.com/ultimate-guide-systemd-autostart-scripts-raspberry-pi/ 
 - This is a website that has a nice guide on how to use the system. 
 - First, you want to type
-    - **sudo nano /etc/systemd/system/name-of-your-service.service**. 
+    - `sudo nano /etc/systemd/system/name-of-your-service.service`. 
 - Then you will want to place this inside your file
 
-
+```python
         [Unit] 
         Description=Motion Detection 
         After=multi-user.target 
@@ -445,6 +468,7 @@ Step 1: Setting up the script to run at boot/
 
         [Install] 
         WantedBy=multi-user.target
+```
 
 - Next, you want to save and exit.
 - Then you need to change the file permissions, do this by typing in your console
@@ -469,17 +493,17 @@ This took me some time to figure out, but after seeing the obvious problem I was
 
 Unmount your external flash drive and check the folder in /media/your-user again. Now, there should only be one (empty) folder. Remove the folder with sudo rights:
 
-sudo rmdir /media/your-user/your-usb
+`sudo rmdir /media/your-user/your-usb`
 
 
 ## - Creating a Cron Job
 
-Step 1: Open the Crontab (make sure to do 'cd/home/your_username) first
-- sudo crontab -e
+**Step 1:** Open the Crontab (make sure to do 'cd/home/your_username) first
+- `sudo crontab -e`
 
 Step 2: Add the cron job
-- 0 3 */2 * * /home/your_username/clean_system.sh > /home/your_username/clean_system.log 2>&1
-- 0 3 * * * /home/your_username/update_system.sh > /home/your_username/update_system.log 2>&1
+- `0 3 */2 * * /home/your_username/clean_system.sh > /home/your_username/clean_system.log 2>&1`
+- `0 3 * * * /home/your_username/update_system.sh > /home/your_username/update_system.log 2>&1`
 
 Step 3: Save & Exit (ctrl + x, then y, then exit)
 
@@ -487,6 +511,7 @@ Step 4: Update .bashrc
 To access, do (sudo nano ~./bashrc)
 Then scroll to the bottom of the file and add the following lines...
 
+```python
       # Display cron job message 
       if [-f /home/your_username/cron_message.txt]; then 
           cat /home/your_username/cron_message.txt 
@@ -496,22 +521,24 @@ Then scroll to the bottom of the file and add the following lines...
       if [-f /home/your_username/update_message.txt]; then 
           cat /home/your_username/update_message.txt 
       fi  
+```
 
 Now we need to create the bash scripts
 
 Step 5: Create the clean/update script
 
-- sudo nano clean_system.sh
+- `sudo nano clean_system.sh`
 
 Then type the following lines
 
+```python
   #!/bin/bash 
   #Clean the system of unnecessary caches 
-  sudo apt clean 
+  `sudo apt clean` 
   
   #Log the system clean to a file 
-  echo "System has been cleaned on $(date)" > /home/your_username/cron_message.txt 
-
+  `echo "System has been cleaned on $(date)" > /home/your_username/cron_message.txt` 
+```
 
 Note: you will need to manually type '-y', otherwise it won't be identified/recognized properly.
 
@@ -519,32 +546,32 @@ Now save and exit
 
 Step 6: Make the scripts executable
 
-- sudo chmod +x update_system.sh
-- sudo chmod +x clean_system.sh
+- `sudo chmod +x update_system.sh`
+- `sudo chmod +x clean_system.sh`
 
 Step 7: Verify the setup (check if the cron job is listed)
 
-- sudo crontab -l
+- `sudo crontab -l`
 
 Step 8: Test the script manually
 
-- /home/your_username/update_system.sh
-- /home/your_username/clean_system.sh
+- `/home/your_username/update_system.sh`
+- `/home/your_username/clean_system.sh`
 
 Step 9: Reboot your device so it can update the new changes made
 
-- sudo reboot
+- `sudo reboot`
 
 Step 10: Verify the cron job is running
 
-- crontab -l
+- `crontab -l`
 
 Step 11: Ensure files have privileges
 
-- sudo chown your_user:your_user /home/your_username/update_system.sh
-- sudo chown your_user:your_user /home/your_username/clean_system.sh
-- sudo chown your_user:your_user /home/your_username/cron_message.txt
-- sudo chown your_user:your_user /home/your_username/update_message.txt
+- `sudo chown your_user:your_user /home/your_username/update_system.sh`
+- `sudo chown your_user:your_user /home/your_username/clean_system.sh`
+- `sudo chown your_user:your_user /home/your_username/cron_message.txt`
+- `sudo chown your_user:your_user /home/your_username/update_message.txt`
 
 
 # - Log Rotation
@@ -552,8 +579,8 @@ This is a must-have when creating new files or processes like systemd and cron j
 
 Step 1: Modify logrotate.conf
 
-- cd /etc
-- sudo nano logrotate.conf
+- `cd /etc`
+- `sudo nano logrotate.conf`
 
 Change weekly to daily & rotate 2 (was 4), then save and exit.
 
@@ -563,7 +590,7 @@ Step 3: Create a new file
 
 Add the following lines
 
-- /var/log/journal/some long number/*.journal* { 
+- `/var/log/journal/some long number/*.journal* {`
     - Note: 'some long number' can be found by typing in the system "exit, re-login, then type 'ncdu /' and go to the /var (use the arrow keys here.)" 
 -However, if you aren't in any files, you just need to type 'ncdu' and the steps after.
 
@@ -572,6 +599,7 @@ Then go to /log, then /journal, there you will see the file name you need to cop
 
 Add the following lines to the rest of your file 
 
+```python
     rotate 2 
     hourly 
     missingok 
@@ -582,12 +610,12 @@ Add the following lines to the rest of your file
             rm –f /var/log/journal/really long file name goes here/*.journal* 2>/dev/null; 
     endscript 
     } 
-
+```
  
 
 So the entire file should look like the below. 
 
-
+```python
 /var/log/journal/some long number/*.journal* { 
 
     rotate 2 
@@ -600,7 +628,7 @@ So the entire file should look like the below.
             rm –f /var/log/journal/really long file name goes here/*.journal* 2>/dev/null; 
     endscript 
     } 
-
+```
 
 Step 4: Forcing log rotation (!VERY IMPORTANT/USEFUL!)
 
@@ -616,12 +644,29 @@ Why is this important?
 
 Step 5: Create a new file/make a log rotation file for multiple libraries/processes
 
+`sudo nano /etc/logrotate.d/motion_log`
 
+add the following lines to this file
+
+```python
+/var/log/motion/*.log*
+/var/log/motioneye/*.log*{
+
+    rotate 2
+    hourly
+    missingok
+    notifempty
+    nocompress
+    maxage 48
+    postrotate
+           rm -f /var/log/motion/*.log* 2>/dev/null;
+           rm -f /var/log/motioneye/*.log* 2>/dev/null;
+    endscript
+}
+```
+
+Make sure to save and exit!
  
-
- 
-
-  
 Step 6: Understanding what's happening in the log rotation files we have created
 
 /var/log/motion/*.log*
@@ -705,7 +750,7 @@ Seems redundant (since logrotate already handles deletion), but maybe intended t
 - https://www.raspberrypi.com/documentation/computers/camera_software.html#building-rpicam-apps
 - https://objsal.medium.com/install-uncomplicated-firewall-to-a-raspberry-pi-76f5c4591651
 - https://www.techcoil.com/blog/how-i-built-my-home-raspberry-pi-3-cctv-using-a-motion-eye-os-image-from-home-surveillance/
-- https://www.youtube.com/watch?v=l2J8Gfq0tqk
+- https://www.youtube.com/watch?v=l2J8Gfq0tqk 
 - https://www.reddit.com/r/RASPBERRY_PI_PROJECTS/comments/tq22wg/comment/i2inmzh/
 - https://github.com/motioneye-project/motioneye/tree/dev?tab=readme-ov-file#installation
 
