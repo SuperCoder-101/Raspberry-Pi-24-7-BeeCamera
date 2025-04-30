@@ -64,19 +64,34 @@ To set up Dataplicity on the Raspberry Pi, you will need to enter your email on 
   
 Note: Using Dataplicity is not very difficult; there are plenty of documents and articles on the website that you can use to help you get moving.
 
-## - MotionEye.eo
-
+## - MotionEye Setup
 Set up MotionEye.eo
 Source: https://jmichault.github.io/motioneye.eo-dok/en/instalado_en_debian/
 We need to modify some things here for MotionEye.
-1.	Make sure you have motion eye installed
-a.	sudo nano /etc/motioneye/motioneye.conf
-i.	Then go to the #TCP port to listen on ‘port 8765’ change to port 80.
-2.	Do a sudo reboot
-3.	Then go to the dataplicity website and turn on the wormhole
-4.	Now we need to modify the systemd file for MotionEye
-a.	sudo nano /etc/system/systemd/motioneye.service
-i.	The file should look like the below
+
+**1.	Install MotionEye.eo.**
+
+**2.	Edit the config:**
+
+`sudo nano /etc/motioneye/motioneye.conf`
+
+Set the port:
+
+`port 80`
+
+Make sure to replace `port 8765`.
+
+**3. Reboot the system:**
+
+`sudo reboot`
+
+**4. Enable wormhole via Dataplicity.**
+
+**5. Edit the systemd file:**
+
+`sudo nano /etc/system/systemd/motioneye.service`
+
+The file should look like the below:
 ```python
 [Unit]
 Description=motionEye Server
@@ -99,18 +114,22 @@ RestartSec=3
 WantedBy=multi-user.target
 ```
 
-5.	Save and Exit
-6.	Now just quickly reload and restart the systemd service
-a.	sudo systemctl daemon-reload
-b.	sudo systemctl restart motioneye
-i.	Now if you want to view the status of the system
-c.	sudo systemctl status motioneye
-7.	Click the link that the wormhole created
-a.	Now you’re at the website, you should see the login page.
-Step 11: How to Set Up a MotionEye Log File (Raspberry Pi Style)
+**6. Save and Exit.**
 
-1. Create a proper log folder
-Let’s make sure /var/log/motioneye/ exists:
+**7. Reload and restart the service:**
+
+`sudo systemctl daemon-reload`
+
+`sudo systemctl restart motioneye`
+
+`sudo systemctl status motioneye`
+
+**8. Open the wormhole link to access the web portal.**
+    
+
+## - Logging for MotionEye
+
+**1. Create log directory:**
 
 ```python
 sudo mkdir -p /var/log/motioneye
@@ -118,178 +137,134 @@ sudo chown root:root /var/log/motioneye
 sudo chmod 755 /var/log/motioneye
 ```
 
-Folder is there, owned by root, readable by the service.
-2. Update motioneye.conf to log to a file
-Now edit the main MotionEye config file:
-sudo nano /etc/motioneye/motioneye.conf
+**2. Edit motioneye.conf:**
+`sudo nano /etc/motioneye/motioneye.conf`
 
-Add (or edit) these lines:
+Add:
 
+```python
 log_level info
 log_file /var/log/motioneye/motioneye.log
-Details:
--	log_level can be info, warn, or debug depending on how much you want.
--	log_file points directly to where you want the logs to go.
-Now MotionEye will actively write logs instead of dumping everything to console only.
+```
 
-3. Make sure the log file itself exists
+**3. Make sure the log file itself exists:**
 Even though MotionEye should create it automatically, we’ll be proactive:
+
+```python
 sudo touch /var/log/motioneye/motioneye.log
 sudo chown root:root /var/log/motioneye/motioneye.log
 sudo chmod 644 /var/log/motioneye/motioneye.log
+```
+
 Now MotionEye can open and write into the file cleanly without error.
 
-4. Reload and Restart MotionEye
+**4. Reload and Restart MotionEye:**
+
+```python
 sudo systemctl daemon-reload
 sudo systemctl restart motioneye
+```
+
 Fresh config, fresh logging, service starts without explosions.
 
-5. Check the logs working
+**5. Check logs:**
 After a few seconds/minutes, you can check that MotionEye is logging stuff like:
+
+```python
 cat /var/log/motioneye/motioneye.log
-or
+# or
 tail -f /var/log/motioneye/motioneye.log
-(for live scrolling view).
- You should see service startup info, camera statuses, errors, etc.
-Full Summary:
-Step	Command
-Create log folder	sudo mkdir -p /var/log/motioneye
-Set ownership	sudo chown root:root /var/log/motioneye
-Set permissions	sudo chmod 755 /var/log/motioneye
-Set up config logging	log_level info + log_file /var/log/motioneye/motioneye.log
-Create blank log file	sudo touch /var/log/motioneye/motioneye.log
-Restart service	sudo systemctl restart motioneye
+```
 
 ## - Install a firewall 
+UFW (Uncomplicated Firewall) is a simple interface for managing iptables on Raspberry Pi OS.
 
-There are a number of ways to add a firewall to your Raspberry Pi, including the iptables that comes with Raspberry Pi OS. I would recommend to use the UFW ('uncomplicated firewall') interface. 
-
-To install the UFW software, open a terminal window and enter: 
+**1. Install UFW**
 
 `sudo apt install ufw` 
 
-UFW will be installed but not active yet. Also by default it will block all incoming traffic and allow all outgoing traffic, this includes any SSH connections. 
+By default, UFW blocks all incoming connections and allows all **outgoing**.
 
-To open a port whil using UFW, such as port 22, the default used for SSH, type in: 
+**2. Open SSH Port (default is 22)**
 
 `sudo ufw allow 22` 
 
-You can also make it more specific to only allow specific IP-addresses: 
+If you're setting up a **static IP**, you can restrict it to a specific IP.
 
 `sudo ufw allow from 192.168.1.100 port 22`  
 
-Please keep in mind that this is just a made up port number please only do this for your IP-address specifically if you plan to create a STATIC IP address.  
+(Replace `192.168.1.100` with your actual device IP.)
 
-Don't forget to replace values with your own settings. On a local network you can get your ip address with the command ipconfig (Windows) or ifconfig(Linux/Mac). 
-
-To list the enabled firewall rules: 
-
-Sudo ufw show added 
-
-Now to enable the firewall: 
+**3. Enable UFW**
 
 `sudo ufw enable` 
 
-Be careful as this will enable the firewall now, and you will get the message Firewall is active and enabled on system startup. 
+Check rules:
 
-To display your current rules once ufw enabled, use this command: 
+`sudo ufw status verbose`
 
-`sudo ufw status verbose` 
+Optional: View added rules
 
-Quite complicated rules can be provided, such as to allow specific IP addresses to be blocked, specifying in which direction traffic is allowed, or limiting the number of attempts to connect. For more complex configurations, I suggest to check the manual, just type: 
+`sudo ufw show added`
 
-man ufw 
+ **Warning:** If you mess this up and lock out SSH access, you'll need a monitor and keyboard to regain control. Be careful.
+ 
+## - Google Authenticator for 2FA
 
-## Set up Google Authenticator
-
-First you want to use the command
+**1. Install the PAM moldule**
 
 `sudo apt install libpam_google_authenticator`
 
-Set up google authenticator for your account
+**2. Run setup**
 
 `sudo google-authenticator`
 
-Then you will need to scan the QR code that pops up with your authenticator app/camera
+Follow the prompts:
+  - Scan the QR coe with the **Google Authenticator** app
+  - Answer the questions (`y` recommended for all)
 
-Finish up with Google Authenticator on the Pi
+**3. Enable PAM module**
 
-answer `y` to update the .google_authenticator file
+Edit SSH's PAM config:
 
-Next you will be asked some questions about "time skew"
+`sudo nano /etc/pam.d/sshd`
 
-Update PAM
+Add to the **top** of the file:
 
-```python
-sudo cp /etc/pam.d/sshd !#$.dist`
-sudo nano /etc/pam.d/sshd
-```
+`auth required pam_google_authenticator.so`
 
-Add the following line at the top
+Save and exit.
 
-Save & Exit w/ ctrl+x, y, and enter
+**4. Enable 2FA in SSH**
 
-Tesh SSH
-
-Now try to log in to your Raspberry Pi form another computer. You will still need to specify your username and the port number you choose.
-
-However, at this point everything should work as needed
-
-## Change Port Number (Optional)
-
-Simply start by typing the command
+Edit the SSH server config:
 
 `sudo nano /etc/ssh/sshd_config`
 
-add the line port #### (whatever number you choose)
+Find or add these lines:
 
-So if you see `port 22` change it otherwise add the line port your-num
+`ChallengeResponseAuthentication yes`
 
-Then restart the ssh service
+Restart SSH:
+
+`sudo systemctl restart ssh`
+
+
+## - Change SSH Port Number (Optional)
+To change your SSH port:
+
+`sudo nano /etc/ssh/sshd_config`
+- Look for `port 22`. Change it to your preferred port (e.g., `Port 2200`)
+- If it's not there, add:
+    `port 2200` (or any unused port)
+
+Save and exit. Then restart SSH:
 
 `sudo service ssh restart`
 
-Now your new port number should work.
-
-Common mistakes: Don't use ssh_config this will not work, always use sshd_config if you need to configure ssh.
-
-## - Work with credential files (Optional)
-
-The final security recommendation (for now) is to make use of environmental variables to store credentials, such as email logins, that may be needed in user scripts. Environment variables are operating system level variables whose value can be used by software programs. As the values remain the system, not in the script, there is less risk of exposing credentials. 
-
- 
-Let’s create a simple file called mycredentials: 
-
-`sudo nano ~/.mycredentials.env`
-
-
-Now enter any information you may want and use a variable name you can call upon in your scripts prepended with an export command. For example: 
-
-export GMAIL_USERNAME='XXXXXXXX' 
-
-export GMAIL_PASSWORD='XXXXXXXX' 
-
-
-Now save the file and change its permissions so it is not readable by others: 
-
-chmod 600 ~/.mycredentials.env 
- 
-
-Make sure the variables are loaded: 
-
-source ~/.mycredentials.env 
- 
-
-And finally, adapt your script to use the stored variables. For example, in Python: 
-
-Import os 
-
-GMAIL_USERNAME = os.environ['GMAIL_USERNAME'] 
-
-GMAIL_PASSWORD =  os.environ['GMAIL_PASSWORD'] 
- 
-
-That is all for this section. 
+**Reminder:**
+- Use `sshd_config`, not `ssh_config`
+- Make sure the new port is allowed in your firewall
 
 
 ## - Static IP (Optional)
@@ -391,52 +366,43 @@ Then everything should be ready to go with your static IP address. I also wouldn
 Otherwise you're done here. 
 
 
-## - Getting Permissions and Folders set up
+## - Folder & Script Permissions
 
-Getting permissions and folders set up 
+**1. Create a Folder**
 
+```python
+sudo mkdir /home/your-user/python_scripts
+sudo chown -R your-user:your-user /home/your-user/python_scripts
+```
 
-The WinSCP SOP explains the permission commands in case you want to change the numbers from 777 to 755 for example.   
+**2. Open Script in Thonny**
 
-Step 1: Create a new folder under your user (Cat) or (Your User Name) 
+- Go to Applications > Programming > Thonny
+- Load your script from the flash drive
+- Modify or test as needed
 
-`sudo mkdir python_scripts` 
+3. Set Permissions
 
-Ex: python_scripts (always use _ when creating files, it is easier than dealing with issues related to files with spaces in them). 
+```python
+sudo chmod 775 /home/your-user
+cd /home/your-user/python_scripts
+sudo chmod 775 your_file.py
+```
 
-Make sure to give permission here as well. 
+Back out:
 
-`sudo chown -R Cat:Cat /home/Cat/python_scripts`
+`cd`
 
+**4. Fix Device Permissions**
 
-**Step 2:** Open the ‘Applications menu’, hover over ‘Programming’, and click ‘Thonny’. 
+If the camera isn't working, run:
 
-This is where you are going to open the Python script.  
+`sudo chmod 666 /dev/video0`
 
-Click on Load then go to the flash drive you connect to your Raspberry Pi and select your_file.py. 
+And for flash drive access:
 
-Here you can start modifying your script and even run it through Thonny. 
+`sudo chmod 775 /media/your-user/flash_drive`
 
-Step 3: Access your terminal/console. 
-
-Now there are a few things we will need to do. 
-
-First type `sudo chmod 777 /home/Cat` (chmod 777 gives you modify, execute, and write permissions, normally don’t do this however, you will need these permissions to manage and execute this file in the future). 
-
-Next, type cd your_folder, and type sudo chmod 777 your_file.py. This will give that file the permissions it needs to run on your system. 
-
-Now type cd so that you will end up back into the Orchid user directory. 
-
-Note: The python file could be any name, just select the one you plan on using, I am currently using yolo_captureV3.py. 
-
-
-Step 4: Other file permissions that you might need to add if the camera isn’t working or is being accessed as it should be. 
-
-Type sudo chmod 666 /dev/video0, sometimes this helps with giving the proper permissions to the camera so it can execute. Chmod 666 gives all users, files, etc., read and write permissions. This only gives those permissions to what you write the permissions for so the /dev/video0 directory. 
-
- Another directory that needs permission is /media/Cat/flash_drive, so type sudo chmod 777 /media/Robo/. 
-
-This allows Raspberry Pi permission to send the video to your flash drive.  
 
 ## - Systemd Setup
 
@@ -481,33 +447,35 @@ Step 1: Setting up the script to run at boot/
 Note: I created the folder python_scripts, so do not add /python_scripts/ if you do not plan on putting your python scripts in a specific folder. The above is simply the path to my file, everyone has a different path to their files.
 
 
-## - Some Errors You May Run Into
-There is a chance you will have permission errors or USB issues. The USB issue I am referring to typically occurs when the system is shut down unsafely, the USB is not unmounted properly, or when the system crashes. This doesn't occur every time these happen, however, that does not mean it is not going to happen.
+## - Troubleshooting USB or Permission Errors
 
-The system usually creates and removes folders automatically if you plug in an external device. For example, Ubuntu crashed, therefor, the system can't remove the folder, and the next created folder becomes a suffix, the number 1.
+If you crash or unplug incorrectly, USB mounts can get messy.
 
-I was able to determine this by checking the status of the systemd service when it was running, it told me there was a broken pip Errno 32.
+Symptoms:
+- MotionEye erros
+- `Errno 32`
+- "Permission denied" in scripts
 
-However, what I found from this was that typically this occurs when the audio is not set up correctly. I know that my audio was setup correctly, so I knew this was not the issue. I then decided to run the motion.py file in Thonny, here I was able to see that after motion detection started it immediately said permission denied. So, I knew that my permissions were messed up (or so I thought). After looking at the /media/your-user folder I was able to determine that two folders were created under the same name.
-This took me some time to figure out, but after seeing the obvious problem I was able to come up with a very simple solution.
-
-Unmount your external flash drive and check the folder in /media/your-user again. Now, there should only be one (empty) folder. Remove the folder with sudo rights:
+Fix:
+1. Unplug USB drive
+2. Check /media/your-user/
+3. If a duplicate folder exists, remove it:
 
 `sudo rmdir /media/your-user/your-usb`
 
 
 ## - Creating a Cron Job
 
-**Step 1:** Open the Crontab (make sure to do 'cd/home/your_username) first
+**1. Open the Crontab (make sure to do 'cd/home/your_username) first**
 - `sudo crontab -e`
 
-Step 2: Add the cron job
+**2. Add the cron job**
 - `0 3 */2 * * /home/your_username/clean_system.sh > /home/your_username/clean_system.log 2>&1`
 - `0 3 * * * /home/your_username/update_system.sh > /home/your_username/update_system.log 2>&1`
 
 Step 3: Save & Exit (ctrl + x, then y, then exit)
 
-Step 4: Update .bashrc
+**4. Update .bashrc**
 To access, do (sudo nano ~./bashrc)
 Then scroll to the bottom of the file and add the following lines...
 
@@ -525,7 +493,7 @@ Then scroll to the bottom of the file and add the following lines...
 
 Now we need to create the bash scripts
 
-Step 5: Create the clean/update script
+**5. Create the clean/update script**
 
 - `sudo nano clean_system.sh`
 
@@ -544,29 +512,29 @@ Note: you will need to manually type '-y', otherwise it won't be identified/reco
 
 Now save and exit
 
-Step 6: Make the scripts executable
+**6. Make the scripts executable**
 
 - `sudo chmod +x update_system.sh`
 - `sudo chmod +x clean_system.sh`
 
-Step 7: Verify the setup (check if the cron job is listed)
+**7. Verify the setup (check if the cron job is listed)**
 
 - `sudo crontab -l`
 
-Step 8: Test the script manually
+**8. Test the script manually**
 
 - `/home/your_username/update_system.sh`
 - `/home/your_username/clean_system.sh`
 
-Step 9: Reboot your device so it can update the new changes made
+**9. Reboot your device so it can update to the new changes made**
 
 - `sudo reboot`
 
-Step 10: Verify the cron job is running
+**10. Verify the cron job is running**
 
 - `crontab -l`
 
-Step 11: Ensure files have privileges
+**11. Ensure files have privileges**
 
 - `sudo chown your_user:your_user /home/your_username/update_system.sh`
 - `sudo chown your_user:your_user /home/your_username/clean_system.sh`
