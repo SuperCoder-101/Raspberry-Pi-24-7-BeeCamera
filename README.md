@@ -1,15 +1,15 @@
 # Raspberry-Pi-24-7-BeeCamera
 
-## Livestream night vision camera, embedded on website
+## Live stream night vision camera, embedded on website
 
 ## Introduction
 The Raspberry Pi BeeCamera is a work project requested by the Plains Art Museum. The main goal of this project is to install an OV5647 5MP 1080p Arducam Day-Night IR camera in/a honeybee hive to capture these busy bees at work.
 
-The objective is to have a Raspberry Pi 4 and the OV5647 run 24/7 and livestream the video feed to a website.
+The objective is to have a Raspberry Pi 4 and the OV5647 run 24/7 and live stream the video feed to a website.
 
-My goal is to make this project as replicable as possible, especially after having little to no experience with Raspberry Pi prior to starting this project. 
+My goal is to make this project as replicable as possible, especially after having little to no experience with Raspberry Pi before starting this project. 
 
-All you really need here is a basic understanding of Raspberry Pi boards.
+All you need here is a basic understanding of Raspberry Pi boards.
 
 ## - Hardware
 - A Raspberry Pi 4 (or 3 B+)
@@ -38,7 +38,7 @@ sudo apt-get update
 sudo apt-get upgrade
 ```
 
-Next, if you haven't already, I suggest running the command below so you can set up your system configurations how you want.
+Next, if you haven't already, I suggest running the command below so you can set up your system configurations as you want.
 ```python
 sudo raspi-config
 ```
@@ -211,7 +211,7 @@ Optional: View added rules
  
 ## - Google Authenticator for 2FA
 
-**1. Install the PAM moldule**
+**1. Install the PAM module**
 
 `sudo apt install libpam_google_authenticator`
 
@@ -220,7 +220,7 @@ Optional: View added rules
 `sudo google-authenticator`
 
 Follow the prompts:
-  - Scan the QR coe with the **Google Authenticator** app
+  - Scan the QR code with the **Google Authenticator** app
   - Answer the questions (`y` recommended for all)
 
 **3. Enable PAM module**
@@ -269,101 +269,64 @@ Save and exit. Then restart SSH:
 
 ## - Static IP (Optional)
 
-!IMPORTANT! 
+**IMPORTANT:**
 
-IF YOU SET UP A STATIC IP ADDRESS WITH A SPECIFIC WIFI NETWORK THAT STATIC IP ADDRESS CAN ONLY WORK ON THAT WIFI NETWORK. MEANING YOUR DEVICE WILL RUN INTO LOGIN ISSUES VIA SSH IF YOU TRY TO USE IT WITH A DIFFERENT WIFI NETWORK, THIS IS BECAUSE THE STATIC IP ADDRESS WAS NOT SET UP ON THAT SPECIFIC NETWORK. 
+A static IP will only work on the specific Wi-Fi network you configure it for. If you move the Pi to another network, you'll run into SSH connection issues.
 
- PLEASE ONLY DO THIS IF YOU WANT TO, DO NOT DO THIS UNLESS YOU FEEL IT IS NECESSARY. 
-
-
-Setting up a static IP address 
+Follow this guide or use the steps below:
 
 - https://phoenixnap.com/kb/raspberry-pi-static-ip 
 
+**1. Get Your Current IP**
 
-I will also just write down what I take from this guide.
- 
+`hostname -I`
 
-Obtain Current IP Address 
+Or look it up via your router, hotspot, or RealVNC if you're using a display.
 
-`Hostname –I` 
+**2. Get Your Network Interface**
 
+`ip r | grep default`
 
-OR 
-
-On your mobile hotspot or Raspberry Pi display you can find the IP address easily. 
-
-The Raspberry Pi display if you enable RealVNC Server the IP address of your Raspberry Pi will show up there. 
-
-
-Next you want to identify the default network interface 
-
-`ip r | grep default` 
-
-
-The output will display the router's address. To obtain the name of your network interface, use the following command below: 
+Then:
 
 `route | grep '^default' | grep –o '[^]*$'` 
 
-
-This command uses grep regex to extract the interface name from the larger output. 
-
-
-Next you want to obtain the DNS Address, you can find it in the resolv.conf file located in the /etc directory. 
+**3. Get Your DNS Server**
 
 `sudo nano /etc/resolv.conf` 
 
+Find the line starting with `nameserver`, note that IP.
 
-Look for the line that starts with the word nameserver and write down the DNS IP address. 
-
-Also the nameserver in this case is literally the same as the IP address. 
-
-
-Next you want to edit the network settings 
-
-Once you have all this information, set up a static private IP address on your Raspberry Pi employing one of the two methods described below. 
-
-
-Open the dhcpcd.conf file in a text editor. 
+**4. Edit dhcpcd.conf**
 
 `sudo nano /etc/dhcpcd.conf` 
 
+Scroll to the bottom. Uncomment and edit the example static IP section:
 
-Scroll to the bottom of the file and find the lines below.  
+```python
+interface wlan0
+static ip_address=192.168.1.150/24
+static routers=192.168.1.1
+static domain_name_servers=192.168.1.1
+```
 
+Replace values with yours.
 
-Here you will want to uncomment the lines you plan on using and make sure to add your ip addresses and other configurations as needed. 
+**DO NOT reboot yet!**
 
- So it will kinda look like the picture below. 
+**5. Update Firewall Rule for New IP**
 
+If you're using UFW and restricting IPs, allow your new static IP:
 
-After this has been done you will save and exit.  
+`sudo ufw allow from 192.168.1.150 to any port 22`
 
-
-HOWEVER DO NOT SHUTDOWN OR REBOOT THE SYSTEM YET. 
-
-
-Remember when we made that firewall? Yea you need to add your new static ip address to that or you will be locked out of your device via ssh. 
-
-
-Simply go back to the firewall tutorial to the left and add your new IP address following the steps listed. 
-
-
-Afterwards you will  reboot the Raspberry Pi 
+Then reboot:
 
 `sudo reboot` 
 
-
-Then you can just test your Raspberry Pi like so 
-
+Check it worked:
 
 `hostname -I` 
-
-
-Then everything should be ready to go with your static IP address. I also wouldn't follow the last bit of the tutorial from the link I sent where it says to set up the static IP address via GUI. The Raspberry Pi has had quite a few updates to their GUI since this tutorial came out and they do not have their settings set up like that anymore on the display.  
-
-
-Otherwise you're done here. 
 
 
 ## - Folder & Script Permissions
@@ -406,14 +369,11 @@ And for flash drive access:
 
 ## - Systemd Setup
 
-Step 1: Setting up the script to run at boot/
+Create a service file:
 
-- Systemd is a wonderful resource when it comes to running files at boot, and it is a library that is a part of the Raspberry Pi OS, so you do not need to download anything for this.
-- https://www.thedigitalpictureframe.com/ultimate-guide-systemd-autostart-scripts-raspberry-pi/ 
-- This is a website that has a nice guide on how to use the system. 
-- First, you want to type
-    - `sudo nano /etc/systemd/system/name-of-your-service.service`. 
-- Then you will want to place this inside your file
+`sudo nano /etc/systemd/system/your-service.service`
+
+Paste this (edit paths/user as needed):
 
 ```python
         [Unit] 
@@ -436,23 +396,32 @@ Step 1: Setting up the script to run at boot/
         WantedBy=multi-user.target
 ```
 
-- Next, you want to save and exit.
-- Then you need to change the file permissions, do this by typing in your console
-     - sudo chmod 644 /etc/systemd/system/name-of-your-service.service
- - As the last step, you need to tell the system that you have added this file; this will make sure that this service starts at boot.
- - Type 'sudo systemctl daemon-reload' and then 'sudo systemctl enable name-of-your-service.service'
- - You can always disable the service by typing 'sudo systemctl disable name-of-your-service'
- - Otherwise, the website link I provided goes through the list of commands that you should useto run this service and manage it.
+Set permissions:
 
-Note: I created the folder python_scripts, so do not add /python_scripts/ if you do not plan on putting your python scripts in a specific folder. The above is simply the path to my file, everyone has a different path to their files.
+`sudo chmod 644 /etc/systemd/system/your-service.service`
 
+Enable the service:
+
+```python
+sudo systemctl daemon-reload
+sudo systemctl enable your-service.service
+sudo systemctl start your-service.service
+sudo systemctl status your-service.service
+```
+
+You can stop or disable it later with:
+
+```python
+sudo systemctl stop your-service.service
+sudo systemctl disable your-service.service
+```
 
 ## - Troubleshooting USB or Permission Errors
 
 If you crash or unplug incorrectly, USB mounts can get messy.
 
 Symptoms:
-- MotionEye erros
+- MotionEye errors
 - `Errno 32`
 - "Permission denied" in scripts
 
@@ -466,18 +435,22 @@ Fix:
 
 ## - Creating a Cron Job
 
-**1. Open the Crontab (make sure to do 'cd/home/your_username) first**
+**1. Open Crontab**
+
 - `sudo crontab -e`
 
-**2. Add the cron job**
+**2. Add Jobs**
+
 - `0 3 */2 * * /home/your_username/clean_system.sh > /home/your_username/clean_system.log 2>&1`
 - `0 3 * * * /home/your_username/update_system.sh > /home/your_username/update_system.log 2>&1`
 
-Step 3: Save & Exit (ctrl + x, then y, then exit)
+Save & Exit.
 
-**4. Update .bashrc**
-To access, do (sudo nano ~./bashrc)
-Then scroll to the bottom of the file and add the following lines...
+**3. Update `.bashrc` to Display Messages**
+
+`sudo nano ~/.bashrc`
+
+Add at the bottom:
 
 ```python
       # Display cron job message 
@@ -491,13 +464,9 @@ Then scroll to the bottom of the file and add the following lines...
       fi  
 ```
 
-Now we need to create the bash scripts
+**4. Create Bash Scripts**
 
-**5. Create the clean/update script**
-
-- `sudo nano clean_system.sh`
-
-Then type the following lines
+`sudo nano clean_system.sh`
 
 ```python
   #!/bin/bash 
@@ -508,80 +477,84 @@ Then type the following lines
   `echo "System has been cleaned on $(date)" > /home/your_username/cron_message.txt` 
 ```
 
-Note: you will need to manually type '-y', otherwise it won't be identified/recognized properly.
+Save & Exit.
 
-Now save and exit
+`sudo nano update_system.sh`
+
+```python
+#!/bin/bash 
+#Update package list and upgrade all packages  
+
+sudo apt update && sudo apt upgrade –y
+
+# Log the update to a file 
+echo "System updated at $(date)" > /home/your_username/update_message.txt 
+ ```
+
+Save & Exit.
 
 **6. Make the scripts executable**
 
-- `sudo chmod +x update_system.sh`
-- `sudo chmod +x clean_system.sh`
+`sudo chmod +x update_system.sh`
+`sudo chmod +x clean_system.sh`
 
-**7. Verify the setup (check if the cron job is listed)**
+**7. Verify Setup**
 
-- `sudo crontab -l`
+`sudo crontab -l`
 
-**8. Test the script manually**
+**8. Test Script**
 
-- `/home/your_username/update_system.sh`
-- `/home/your_username/clean_system.sh`
+`/home/your_username/update_system.sh`
+`/home/your_username/clean_system.sh`
 
-**9. Reboot your device so it can update to the new changes made**
+**9. Reboot Device**
 
-- `sudo reboot`
+`sudo reboot`
 
-**10. Verify the cron job is running**
+**10. Verify Cronjob is running**
 
-- `crontab -l`
+`crontab -l`
 
 **11. Ensure files have privileges**
 
-- `sudo chown your_user:your_user /home/your_username/update_system.sh`
-- `sudo chown your_user:your_user /home/your_username/clean_system.sh`
-- `sudo chown your_user:your_user /home/your_username/cron_message.txt`
-- `sudo chown your_user:your_user /home/your_username/update_message.txt`
-
+```python
+sudo chown your_user:your_user /home/your_username/update_system.sh
+sudo chown your_user:your_user /home/your_username/clean_system.sh
+sudo chown your_user:your_user /home/your_username/cron_message.txt
+sudo chown your_user:your_user /home/your_username/update_message.txt
+```
 
 # - Log Rotation
-This is a must-have when creating new files or processes like systemd and cron jobs. The below were my preferences, so if you wish to do something else, you can still follow this section, but change it in your system as needed.
 
-Step 1: Modify logrotate.conf
+Log rotation is essential to avoid log overflow and system crashes. We’ll configure two key things:
 
-- `cd /etc`
-- `sudo nano logrotate.conf`
+- System journal logs
+- MotionEye logs
 
-Change weekly to daily & rotate 2 (was 4), then save and exit.
-
-Step 3: Create a new file
-
-- sudo nano etc/logrotate.d/journal_log
-
-Add the following lines
-
-- `/var/log/journal/some long number/*.journal* {`
-    - Note: 'some long number' can be found by typing in the system "exit, re-login, then type 'ncdu /' and go to the /var (use the arrow keys here.)" 
--However, if you aren't in any files, you just need to type 'ncdu' and the steps after.
-
-Then go to /log, then /journal, there you will see the file name you need to copy. Should be in similar length to the one above. Going back to the file.  Type 'ctrl c', then 'cd /home/your_user', then look back at the beginning of 'step 3' to access the file again. Remember to replace the long folder name with your own now, I have shown you how to do it in 'step 3'. 
-
-
-Add the following lines to the rest of your file 
+**1. Edit Global Settings**
 
 ```python
-    rotate 2 
-    hourly 
-    missingok 
-    notifempty 
-    nocompress 
-    maxage 48 
-    post rotate 
-            rm –f /var/log/journal/really long file name goes here/*.journal* 2>/dev/null; 
-    endscript 
-    } 
+cd /etc
+sudo nano logrotate.conf
 ```
- 
 
-So the entire file should look like the below. 
+- Change `weekly` to `daily`
+- Change `rotate 4` to `rotate 2`
+
+Save & Exit.
+
+**IMPORTANT:** How to find `some-long-number`:
+
+Exit and re-login to your Pi, then run:
+
+`ncdu /`
+
+Use the arrow keys to navigate to `/var/log/journal/` — there you’ll see the long folder name you need.
+This step matters because we’re creating a log rotation file for the actual system journal logs, and they live inside that specific directory name.
+
+**2. Create Rotation Configs**
+
+- sudo nano etc/logrotate.d/journal_log
 
 ```python
 /var/log/journal/some long number/*.journal* { 
@@ -593,28 +566,14 @@ So the entire file should look like the below.
     nocompress 
     maxage 48 
     post rotate 
-            rm –f /var/log/journal/really long file name goes here/*.journal* 2>/dev/null; 
+            rm –f /var/log/journal/long file name goes here/*.journal* 2>/dev/null; 
     endscript 
     } 
 ```
 
-Step 4: Forcing log rotation (!VERY IMPORTANT/USEFUL!)
-
-- sudo logrotate -f /etc/logrotate.d/rotate -journal
-
-Why is this important?
-
-- Prevents Disk Space Overflow
-- Keeps Logs Manageable
-- Improve System Performance
-- Security and Compliance
-- Testing Configuration Changes
-
-Step 5: Create a new file/make a log rotation file for multiple libraries/processes
+Save & Exit.
 
 `sudo nano /etc/logrotate.d/motion_log`
-
-add the following lines to this file
 
 ```python
 /var/log/motion/*.log*
@@ -633,78 +592,11 @@ add the following lines to this file
 }
 ```
 
-Make sure to save and exit!
- 
-Step 6: Understanding what's happening in the log rotation files we have created
+Save & Exit.
 
-/var/log/motion/*.log*
-/var/log/motioneye/*.log*
+**4. Force Log Rotation**
 
-What it does:
-Targets all log files (including rotated one, like .log.1, .log.2.gz, etc.) in the /var /log/motion/ and /var/log/motioneye/ directories
-
-Meaning:
-You are applying the same rotation policy to both sets of logs.
-
-rotate 2
-
-What it does:
-Keeps 2 archived log files before deleting old ones.
-
-Example:
-If today's log rotates, yesterday's and the day before yesterday's logs will be kept, then the oldest will be deleted
-
-hourly
-
-What it does: 
-Rotates the logs every hour. 
-
-Why is it useful: 
-Useful for logs that grow rapidly (like motion detection logs) so they don’t clog up disk space. Probably overkill unless you have a high-frequency logging system. 
-
-missingok 
-
-What it does: 
-If the log files are missing, logrotate will not throw an error—it will just skip them. 
-
-Why: 
-Good for cases where logs might not always exist (e.g., if no motion events occurred). 
-
-Notifempty 
-
-What it does: 
-Doesn’t rotate empty log files 
- 
-Why: 
-Saves unnecessary effort rotating logs with no data. 
-
-nocompress 
-
-What it does: 
-Disables compression of rotated logs. 
-
-Why: 
-Maybe you want quick access to old logs without unzipping. Compression saves space but slows down quick access. ]
-
-maxage 48 
-
-What it does: 
-Deletes any log files older than 48 hours. 
- 
-Why: 
-Ensures logs don't pile up forever. This works alongside the rotate 2 option for cleanup. 
-
-postrotate 
-    rm –f /var/log/motion/*.log* 2>/dev/null; 
-    rm –f /var/log/motioneye/*.log* 2>/dev/null; 
-endscript 
-
-What it does: After rotating logs, it forcefully deletes all logs matching those patterns. 
-- rm -f: Force remove. 
-- 2>/dev/null: Suppress errors if files aren’t found. 
-
-Why: 
-Seems redundant (since logrotate already handles deletion), but maybe intended to clear out stray or orphaned logs that didn’t get cleaned properly. 
+- sudo logrotate -f /etc/logrotate.d/rotate -journal
 
 ## - Resources
 
@@ -723,6 +615,6 @@ Seems redundant (since logrotate already handles deletion), but maybe intended t
 - https://github.com/motioneye-project/motioneye/tree/dev?tab=readme-ov-file#installation
 
 ## -  Final Thoughts
-I think this was a very fun project, as difficult as it was getting into it at first, it ended up not being so bad. At least that is now that I know how to do it. For anybody looking for a similar project that is cost-effective (free), this is definitely the project for you.
+This was a really fun project. It was tough to get started, especially with no prior Raspberry Pi experience, but once I figured things out, it wasn’t so bad. If you're looking for a low-cost (or free) DIY tech project, this one is worth trying.
 
-I also wanted to give a special thanks to my mentor, Joseph Rinehart. Without the resources and support from him and the USDA, I would not have been able to complete this project. 
+Special thanks to my mentor, Joseph Rinehart — without his guidance and the support of the USDA, I wouldn’t have been able to complete this.
